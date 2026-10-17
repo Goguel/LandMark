@@ -1,0 +1,12 @@
+**/.git
+**/.gitignore
+**/node_modules
+**/target
+**/*.class
+**/dist
+**/build
+**/.idea
+**/.vscode
+.agents
+.gemini
+postgres_data
