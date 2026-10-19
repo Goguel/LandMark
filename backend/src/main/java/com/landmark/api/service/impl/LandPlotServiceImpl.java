@@ -10,6 +10,7 @@ import com.landmark.api.exception.SpatialOverlapException;
 import com.landmark.api.repository.LandPlotRepository;
 import com.landmark.api.service.LandPlotService;
 import com.landmark.api.util.GeometryUtils;
+import com.landmark.api.service.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Polygon;
 import org.springframework.stereotype.Service;
@@ -23,9 +24,11 @@ import java.util.UUID;
 public class LandPlotServiceImpl implements LandPlotService {
 
     private final LandPlotRepository repository;
+    private final AuthService authService;
 
-    public LandPlotServiceImpl(LandPlotRepository repository) {
+    public LandPlotServiceImpl(LandPlotRepository repository, AuthService authService) {
         this.repository = repository;
+        this.authService = authService;
     }
 
     @Override
@@ -52,6 +55,8 @@ public class LandPlotServiceImpl implements LandPlotService {
             title = title.trim();
         }
 
+        com.landmark.api.entity.User currentUser = authService.getCurrentAuthenticatedUser();
+
         LandPlot entity = LandPlot.builder()
                 .title(title)
                 .description(request.description().trim())
@@ -59,6 +64,7 @@ public class LandPlotServiceImpl implements LandPlotService {
                 .contact(request.contact().trim())
                 .geometry(polygon)
                 .areaSquareMeters(areaInM2)
+                .owner(currentUser)
                 .build();
 
         LandPlot savedEntity = repository.save(entity);
@@ -109,14 +115,30 @@ public class LandPlotServiceImpl implements LandPlotService {
     @Override
     @Transactional
     public void deletePlot(UUID id) {
-        if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Cannot delete: Land plot not found with ID: " + id);
+        LandPlot plot = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cannot delete: Land plot not found with ID: " + id));
+
+        com.landmark.api.entity.User currentUser = authService.getCurrentAuthenticatedUser();
+        if (currentUser != null) {
+            boolean isOwner = plot.getOwner() != null && plot.getOwner().getId().equals(currentUser.getId());
+            boolean isAdmin = currentUser.getRole() == com.landmark.api.entity.Role.ROLE_ADMIN;
+            if (!isOwner && !isAdmin) {
+                log.warn("User {} attempted to delete plot {} owned by {}",
+                        currentUser.getEmail(), id, plot.getOwner() != null ? plot.getOwner().getEmail() : "none");
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "You do not have permission to delete this plot. Only the owner or an administrator can delete it."
+                );
+            }
         }
-        repository.deleteById(id);
+
+        repository.delete(plot);
         log.info("Deleted land plot with id={}", id);
     }
 
     private LandPlotResponseDTO mapToResponseDTO(LandPlot entity) {
+        UUID ownerId = entity.getOwner() != null ? entity.getOwner().getId() : null;
+        String ownerName = entity.getOwner() != null ? entity.getOwner().getName() : null;
+
         return new LandPlotResponseDTO(
                 entity.getId(),
                 entity.getTitle(),
@@ -125,6 +147,8 @@ public class LandPlotServiceImpl implements LandPlotService {
                 entity.getContact(),
                 GeometryUtils.toGeoJsonDTO(entity.getGeometry()),
                 entity.getAreaSquareMeters(),
+                ownerId,
+                ownerName,
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );

@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class OpenApiConfigTest {
 
     @Test
-    @DisplayName("Should create OpenAPI configuration bean with title and description")
+    @DisplayName("Should create OpenAPI configuration bean with title, description and JWT security scheme")
     void shouldCreateOpenApiBean() {
         OpenApiConfig config = new OpenApiConfig();
         OpenAPI openAPI = config.landmarkOpenAPI();
@@ -21,5 +21,8 @@ class OpenApiConfigTest {
         assertTrue(openAPI.getInfo().getTitle().contains("LandMark"));
         assertNotNull(openAPI.getInfo().getVersion());
         assertNotNull(openAPI.getServers());
+        assertNotNull(openAPI.getComponents());
+        assertNotNull(openAPI.getComponents().getSecuritySchemes().get(OpenApiConfig.SECURITY_SCHEME_NAME));
+        assertNotNull(openAPI.getSecurity());
     }
 }

@@ -72,6 +72,8 @@ class LandPlotControllerTest {
                 "owner@landmark.com",
                 validPolygonDTO,
                 50000.0,
+                UUID.randomUUID(),
+                "Owner User",
                 LocalDateTime.now(),
                 null
         );

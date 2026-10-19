@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,14 +21,36 @@ public class LandPlotDataLoader implements CommandLineRunner {
 
     private final LandPlotRepository repository;
     private final LandPlotService landPlotService;
+    private final com.landmark.api.repository.UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public LandPlotDataLoader(LandPlotRepository repository, LandPlotService landPlotService) {
+    public LandPlotDataLoader(
+            LandPlotRepository repository,
+            LandPlotService landPlotService,
+            com.landmark.api.repository.UserRepository userRepository,
+            PasswordEncoder passwordEncoder
+    ) {
         this.repository = repository;
         this.landPlotService = landPlotService;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) {
+        // Ensure default administrator account exists
+        com.landmark.api.entity.User admin = userRepository.findByEmail("admin@landmark.com")
+                .orElseGet(() -> {
+                    com.landmark.api.entity.User newAdmin = com.landmark.api.entity.User.builder()
+                            .id(java.util.UUID.fromString("a0000000-0000-0000-0000-000000000001"))
+                            .name("Administrador LandMark")
+                            .email("admin@landmark.com")
+                            .password(passwordEncoder.encode("Landmark@123"))
+                            .role(com.landmark.api.entity.Role.ROLE_ADMIN)
+                            .build();
+                    return userRepository.save(newAdmin);
+                });
+
         long currentCount = repository.count();
         if (currentCount > 0) {
             log.info("LandPlotDataLoader: Database already populated with {} plots. Skipping seed.", currentCount);
@@ -34,6 +58,14 @@ public class LandPlotDataLoader implements CommandLineRunner {
         }
 
         log.info("LandPlotDataLoader: Seeding database with 8 initial landmark plots across Brazil...");
+
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        admin.getEmail(), null, admin.getAuthorities()
+                )
+        );
+
+        try {
 
         // 1. São Paulo - Lote Residencial (Jardins / Cerqueira César) ~520 m² (Casa de Alto Padrão)
         createPlot(
@@ -156,6 +188,9 @@ public class LandPlotDataLoader implements CommandLineRunner {
         );
 
         log.info("LandPlotDataLoader: Successfully seeded {} plots into database.", repository.count());
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 
     private void createPlot(String title, String description, BigDecimal price, String contact, List<List<Double>> ringCoordinates) {

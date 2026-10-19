@@ -35,6 +35,9 @@ class LandPlotServiceTest {
     @Mock
     private LandPlotRepository repository;
 
+    @Mock
+    private AuthService authService;
+
     @InjectMocks
     private LandPlotServiceImpl service;
 
@@ -186,23 +189,85 @@ class LandPlotServiceTest {
     }
 
     @Test
-    @DisplayName("Should delete plot when it exists")
-    void shouldDeletePlotWhenExists() {
+    @DisplayName("Should delete plot when it exists and user is owner")
+    void shouldDeletePlotWhenExistsAndUserIsOwner() {
         UUID id = sampleEntity.getId();
-        when(repository.existsById(id)).thenReturn(true);
-        doNothing().when(repository).deleteById(id);
+        com.landmark.api.entity.User owner = com.landmark.api.entity.User.builder()
+                .id(UUID.randomUUID())
+                .name("Owner User")
+                .email("owner@landmark.com")
+                .role(com.landmark.api.entity.Role.ROLE_USER)
+                .build();
+        sampleEntity.setOwner(owner);
+
+        when(repository.findById(id)).thenReturn(Optional.of(sampleEntity));
+        when(authService.getCurrentAuthenticatedUser()).thenReturn(owner);
+        doNothing().when(repository).delete(sampleEntity);
 
         assertDoesNotThrow(() -> service.deletePlot(id));
-        verify(repository, times(1)).deleteById(id);
+        verify(repository, times(1)).delete(sampleEntity);
+    }
+
+    @Test
+    @DisplayName("Should delete plot when user is admin even if not owner")
+    void shouldDeletePlotWhenUserIsAdmin() {
+        UUID id = sampleEntity.getId();
+        com.landmark.api.entity.User owner = com.landmark.api.entity.User.builder()
+                .id(UUID.randomUUID())
+                .name("Owner User")
+                .email("owner@landmark.com")
+                .role(com.landmark.api.entity.Role.ROLE_USER)
+                .build();
+        sampleEntity.setOwner(owner);
+
+        com.landmark.api.entity.User admin = com.landmark.api.entity.User.builder()
+                .id(UUID.randomUUID())
+                .name("Admin User")
+                .email("admin@landmark.com")
+                .role(com.landmark.api.entity.Role.ROLE_ADMIN)
+                .build();
+
+        when(repository.findById(id)).thenReturn(Optional.of(sampleEntity));
+        when(authService.getCurrentAuthenticatedUser()).thenReturn(admin);
+        doNothing().when(repository).delete(sampleEntity);
+
+        assertDoesNotThrow(() -> service.deletePlot(id));
+        verify(repository, times(1)).delete(sampleEntity);
+    }
+
+    @Test
+    @DisplayName("Should throw AccessDeniedException when non-owner user attempts deletion")
+    void shouldThrowAccessDeniedWhenNonOwnerAttemptsDeletion() {
+        UUID id = sampleEntity.getId();
+        com.landmark.api.entity.User owner = com.landmark.api.entity.User.builder()
+                .id(UUID.randomUUID())
+                .name("Owner User")
+                .email("owner@landmark.com")
+                .role(com.landmark.api.entity.Role.ROLE_USER)
+                .build();
+        sampleEntity.setOwner(owner);
+
+        com.landmark.api.entity.User otherUser = com.landmark.api.entity.User.builder()
+                .id(UUID.randomUUID())
+                .name("Stranger User")
+                .email("stranger@landmark.com")
+                .role(com.landmark.api.entity.Role.ROLE_USER)
+                .build();
+
+        when(repository.findById(id)).thenReturn(Optional.of(sampleEntity));
+        when(authService.getCurrentAuthenticatedUser()).thenReturn(otherUser);
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> service.deletePlot(id));
+        verify(repository, never()).delete(any());
     }
 
     @Test
     @DisplayName("Should throw ResourceNotFoundException when trying to delete non-existent plot")
     void shouldThrowWhenDeletingNonExistentPlot() {
         UUID id = UUID.randomUUID();
-        when(repository.existsById(id)).thenReturn(false);
+        when(repository.findById(id)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> service.deletePlot(id));
-        verify(repository, never()).deleteById(any(UUID.class));
+        verify(repository, never()).delete(any());
     }
 }
