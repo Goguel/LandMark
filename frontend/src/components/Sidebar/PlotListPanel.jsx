@@ -95,6 +95,7 @@ export function PlotListPanel({ isOpen, onClose, plots, selectedPlot, onSelectPl
 
               <div className="plot-card-footer">
                 <span className="plot-card-contact">{plot.contact || plot.contactInfo}</span>
+                {plot.ownerName && <span className="plot-card-owner">👤 {plot.ownerName}</span>}
                 {plot.createdAt && <span className="plot-card-date">{formatDate(plot.createdAt)}</span>}
               </div>
             </div>

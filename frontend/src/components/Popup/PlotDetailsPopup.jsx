@@ -1,14 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { formatArea, formatCurrency, formatDate } from '../../utils/geoUtils';
 import './PlotDetailsPopup.css';
 
-export function PlotDetailsPopup({ plot, onClose }) {
+export function PlotDetailsPopup({ plot, onClose, currentUser, onDeletePlot }) {
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   if (!plot) return null;
+
+  const isOwner = currentUser && plot.ownerId && currentUser.id === plot.ownerId;
+  const isAdmin = currentUser && currentUser.role === 'ROLE_ADMIN';
+  const canDelete = isOwner || isAdmin;
+
+  const handleDelete = async () => {
+    if (!onDeletePlot) return;
+    setIsDeleting(true);
+    try {
+      await onDeletePlot(plot.id);
+    } finally {
+      setIsDeleting(false);
+      setIsConfirmingDelete(false);
+    }
+  };
 
   return (
     <div className="plot-popup-card" id={`plot-popup-${plot.id}`}>
       <div className="popup-header">
-        <span className="popup-badge">Land Plot</span>
+        <span className="popup-badge">{plot.title || 'Land Plot'}</span>
         <button
           className="popup-close-btn"
           onClick={onClose}
@@ -48,10 +66,58 @@ export function PlotDetailsPopup({ plot, onClose }) {
           </p>
         </div>
 
+        {plot.ownerName && (
+          <div className="popup-field">
+            <span className="field-label">Advertiser</span>
+            <span className="field-owner" id="popup-plot-owner">
+              👤 {plot.ownerName}
+            </span>
+          </div>
+        )}
+
         {plot.createdAt && (
           <div className="popup-field footer-field">
             <span className="field-label">Listed on</span>
             <span className="field-date" id="popup-plot-date">{formatDate(plot.createdAt)}</span>
+          </div>
+        )}
+
+        {canDelete && (
+          <div className="popup-owner-actions">
+            {!isConfirmingDelete ? (
+              <button
+                type="button"
+                className="popup-delete-btn"
+                onClick={() => setIsConfirmingDelete(true)}
+                title="Delete this land plot"
+                id="delete-plot-btn"
+              >
+                🗑️ Delete Plot
+              </button>
+            ) : (
+              <div className="popup-delete-confirm-box">
+                <span className="delete-confirm-text">Confirm deletion?</span>
+                <div className="delete-confirm-buttons">
+                  <button
+                    type="button"
+                    className="btn-danger-confirm"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    id="confirm-delete-plot-btn"
+                  >
+                    {isDeleting ? 'Deleting...' : 'Yes, Delete'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-cancel-delete"
+                    onClick={() => setIsConfirmingDelete(false)}
+                    disabled={isDeleting}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -34,4 +34,56 @@ describe('PlotDetailsPopup Component', () => {
     fireEvent.click(screen.getByTitle('Close details'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('renders advertiser name if present', () => {
+    const plotWithOwner = { ...mockPlot, ownerName: 'Alice Broker' };
+    render(<PlotDetailsPopup plot={plotWithOwner} onClose={vi.fn()} />);
+
+    expect(screen.getByText(/Alice Broker/i)).toBeInTheDocument();
+  });
+
+  it('does not render delete button when user is not logged in or not the owner', () => {
+    render(<PlotDetailsPopup plot={mockPlot} onClose={vi.fn()} currentUser={null} />);
+    expect(screen.queryByText(/Delete Plot/i)).not.toBeInTheDocument();
+
+    const strangerUser = { id: 'other-user', name: 'Bob', role: 'ROLE_USER' };
+    render(<PlotDetailsPopup plot={{ ...mockPlot, ownerId: 'owner-id' }} onClose={vi.fn()} currentUser={strangerUser} />);
+    expect(screen.queryByText(/Delete Plot/i)).not.toBeInTheDocument();
+  });
+
+  it('renders delete button and handles confirmation flow for plot owner', async () => {
+    const ownerUser = { id: 'owner-id', name: 'Alice', role: 'ROLE_USER' };
+    const plot = { ...mockPlot, ownerId: 'owner-id' };
+    const onDelete = vi.fn().mockResolvedValue(true);
+
+    render(<PlotDetailsPopup plot={plot} onClose={vi.fn()} currentUser={ownerUser} onDeletePlot={onDelete} />);
+
+    const deleteBtn = screen.getByRole('button', { name: /Delete Plot/i });
+    expect(deleteBtn).toBeInTheDocument();
+
+    // Click delete -> shows confirmation prompt
+    fireEvent.click(deleteBtn);
+    expect(screen.getByText('Confirm deletion?')).toBeInTheDocument();
+    expect(screen.getByText('Yes, Delete')).toBeInTheDocument();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+
+    // Click cancel -> confirmation is dismissed
+    fireEvent.click(screen.getByText('Cancel'));
+    expect(screen.queryByText('Confirm deletion?')).not.toBeInTheDocument();
+
+    // Click delete again and confirm
+    fireEvent.click(screen.getByRole('button', { name: /Delete Plot/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, Delete' }));
+
+    expect(onDelete).toHaveBeenCalledWith('uuid-123');
+  });
+
+  it('renders delete button for admin user even if not the plot owner', () => {
+    const adminUser = { id: 'admin-1', name: 'Admin', role: 'ROLE_ADMIN' };
+    const plot = { ...mockPlot, ownerId: 'some-other-owner' };
+
+    render(<PlotDetailsPopup plot={plot} onClose={vi.fn()} currentUser={adminUser} onDeletePlot={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: /Delete Plot/i })).toBeInTheDocument();
+  });
 });

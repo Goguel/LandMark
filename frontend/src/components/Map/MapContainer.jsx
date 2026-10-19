@@ -177,6 +177,8 @@ export function MapContainer({
   onRadiusSearchCompleted,
   onRadiusTooSmall,
   resetViewTrigger,
+  currentUser,
+  onDeletePlot,
 }) {
   const mapElementRef = useRef(null);
   const popupContainerRef = useRef(null);
@@ -614,6 +616,8 @@ export function MapContainer({
         createPortal(
           <PlotDetailsPopup
             plot={selectedPlot}
+            currentUser={currentUser}
+            onDeletePlot={onDeletePlot}
             onClose={() => {
               setSelectedPlot(null);
               if (popupOverlayRef.current) {
