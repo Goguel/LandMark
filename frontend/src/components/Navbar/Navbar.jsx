@@ -1,7 +1,16 @@
 import React from 'react';
 import './Navbar.css';
 
-export function Navbar({ plotCount, activeFilter, onClearFilter, onToggleSidebar, isSidebarOpen }) {
+export function Navbar({
+  plotCount,
+  activeFilter,
+  onClearFilter,
+  onToggleSidebar,
+  isSidebarOpen,
+  currentUser,
+  onOpenAuthModal,
+  onLogout,
+}) {
   return (
     <header className="navbar" role="banner">
       <div className="navbar-brand">
@@ -44,6 +53,36 @@ export function Navbar({ plotCount, activeFilter, onClearFilter, onToggleSidebar
       </div>
 
       <div className="navbar-actions">
+        {currentUser ? (
+          <div className="user-profile-badge" id="user-profile-badge">
+            <span className="user-avatar" title={`Signed in as ${currentUser.email}`}>
+              <span className="user-icon">👤</span>
+              <span className="user-name">{currentUser.name}</span>
+            </span>
+            {currentUser.role === 'ROLE_ADMIN' && (
+              <span className="admin-tag" title="System Administrator">ADMIN</span>
+            )}
+            <button
+              className="auth-btn logout-btn"
+              onClick={onLogout}
+              title="Sign out of your account"
+              id="logout-btn"
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <button
+            className="auth-btn login-btn"
+            onClick={onOpenAuthModal}
+            title="Sign in or create account on LandMark"
+            id="open-auth-btn"
+          >
+            <span className="auth-btn-icon">🔒</span>
+            <span className="btn-label">Sign In</span>
+          </button>
+        )}
+
         <button
           className={`sidebar-toggle-btn ${isSidebarOpen ? 'active' : ''}`}
           onClick={onToggleSidebar}

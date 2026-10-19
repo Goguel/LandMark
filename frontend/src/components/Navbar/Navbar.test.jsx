@@ -54,4 +54,56 @@ describe('Navbar Component', () => {
     fireEvent.click(toggleBtn);
     expect(handleToggle).toHaveBeenCalledTimes(1);
   });
+
+  it('renders guest auth button and handles click', () => {
+    const handleOpenAuth = vi.fn();
+    render(
+      <Navbar
+        plotCount={2}
+        activeFilter={null}
+        onClearFilter={vi.fn()}
+        onToggleSidebar={vi.fn()}
+        isSidebarOpen={false}
+        currentUser={null}
+        onOpenAuthModal={handleOpenAuth}
+        onLogout={vi.fn()}
+      />
+    );
+
+    const loginBtn = screen.getByRole('button', { name: /Sign In/i });
+    expect(loginBtn).toBeInTheDocument();
+    fireEvent.click(loginBtn);
+    expect(handleOpenAuth).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders user profile and logout button when authenticated', () => {
+    const handleLogout = vi.fn();
+    const mockUser = {
+      id: 'user-1',
+      name: 'Maria Silva',
+      email: 'maria@landmark.com',
+      role: 'ROLE_ADMIN',
+    };
+
+    render(
+      <Navbar
+        plotCount={5}
+        activeFilter={null}
+        onClearFilter={vi.fn()}
+        onToggleSidebar={vi.fn()}
+        isSidebarOpen={false}
+        currentUser={mockUser}
+        onOpenAuthModal={vi.fn()}
+        onLogout={handleLogout}
+      />
+    );
+
+    expect(screen.getByText('Maria Silva')).toBeInTheDocument();
+    expect(screen.getByText('ADMIN')).toBeInTheDocument();
+
+    const logoutBtn = screen.getByRole('button', { name: /Sign Out/i });
+    expect(logoutBtn).toBeInTheDocument();
+    fireEvent.click(logoutBtn);
+    expect(handleLogout).toHaveBeenCalledTimes(1);
+  });
 });
