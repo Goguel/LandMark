@@ -4,15 +4,15 @@ services:
     container_name: landmark-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: landmark_db
-      POSTGRES_USER: landmark_user
-      POSTGRES_PASSWORD: landmark_pass
+      POSTGRES_DB: ${POSTGRES_DB:-landmark_db}
+      POSTGRES_USER: ${POSTGRES_USER:-landmark_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-landmark_pass}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U landmark_user -d landmark_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-landmark_user} -d ${POSTGRES_DB:-landmark_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -27,12 +27,15 @@ services:
       db:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/landmark_db
-      SPRING_DATASOURCE_USERNAME: landmark_user
-      SPRING_DATASOURCE_PASSWORD: landmark_pass
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-landmark_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-landmark_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-landmark_pass}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-validate}
+      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-true}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-tM/Lavz+teGCpzrPfvjhVK9djZV6tPAoaJaoaGjJkvU=}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
     ports:
-      - "8080:8080"
+      - "${SERVER_PORT:-8080}:8080"
 
   frontend:
     build:
@@ -43,7 +46,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT:-3000}:80"
 
 volumes:
   postgres_data:

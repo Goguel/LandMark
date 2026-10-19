@@ -147,7 +147,21 @@ The entire fullstack ecosystem (PostgreSQL/PostGIS, Spring Boot API, and React F
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/) (version 24+)
 
-### Run
+### 1. Environment Configuration (`.env`)
+The platform follows the **Twelve-Factor App (Config)** standard. Infrastructure settings, database credentials, ports, and the 256-bit JWT cryptographic key are managed via environment variables.
+
+To customize settings, copy the provided template to create your `.env` file:
+```bash
+# Linux / macOS
+cp .env.example .env
+
+# Windows (PowerShell)
+copy .env.example .env
+```
+
+> **Note**: Sensible fallback defaults are preconfigured for local development, so Docker Compose runs out of the box even without creating `.env`.
+
+### 2. Build and Launch
 ```bash
 # 1. Clone the repository
 git clone https://github.com/Goguel/LandMark.git
@@ -172,21 +186,32 @@ docker compose up --build
 - **Node.js 20+** & **npm**
 - **PostgreSQL 16+** with **PostGIS** extension
 
-### 1. Database Setup
+### 1. Environment Configuration (`.env`)
+Generate your local `.env` configuration file from the template:
+```bash
+# Linux / macOS
+cp .env.example .env
+
+# Windows (PowerShell)
+copy .env.example .env
+```
+The backend automatically detects and loads properties from `.env` on startup via `springboot-dotenv`.
+
+### 2. Database Setup
 ```sql
 CREATE DATABASE landmark_db;
 \c landmark_db;
 CREATE EXTENSION IF NOT EXISTS postgis;
 ```
 
-### 2. Backend
+### 3. Backend
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 The API starts on port `8080`.
 
-### 3. Frontend
+### 4. Frontend
 ```bash
 cd frontend
 npm install
