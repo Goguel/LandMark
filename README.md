@@ -7,6 +7,7 @@
 [![React 18](https://img.shields.io/badge/React-18-cyan.svg)](https://react.dev/)
 [![OpenLayers](https://img.shields.io/badge/OpenLayers-latest-blue.svg)](https://openlayers.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker%20Compose-Ready-blue.svg)](https://www.docker.com/)
+[![CI / CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-brightgreen.svg?logo=githubactions&logoColor=white)](https://github.com/Goguel/LandMark/actions)
 
 **LandMark** is a modern, production-grade geospatial real estate web platform designed for advertising, discovering, and visualizing land plots on a high-precision dynamic map. Built with an uncompromising focus on geospatial precision, modern decoupled architecture, and intuitive user experience, LandMark allows users to draw real-world property boundaries, validate spatial overlaps natively through PostGIS, and perform interactive proximity searches.
 
