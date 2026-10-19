@@ -71,10 +71,10 @@ public class LandPlotDataLoader implements CommandLineRunner {
 
         try {
 
-        // 1. São Paulo - Lote Residencial (Jardins / Cerqueira César) ~520 m² (Casa de Alto Padrão)
+        // 1. São Paulo - Residential Lot (Jardins / Cerqueira César) ~520 m²
         createPlot(
-                "Lote Residencial Jardins - Al. Lorena",
-                "Excelente lote residencial plano de aproximadamente 520 m² no coração dos Jardins. Ideal para residência unifamiliar de alto padrão ou escritório boutique.",
+                "Jardins Residential Lot - Lorena Avenue",
+                "Prime 520 m² flat residential parcel in the heart of Jardins, São Paulo. Ideal for high-end single-family luxury residence or boutique architectural firm.",
                 new BigDecimal("3850000.00"),
                 "jardins.imoveis@landmark.com.br | (11) 98123-4567",
                 List.of(
@@ -86,10 +86,10 @@ public class LandPlotDataLoader implements CommandLineRunner {
                 )
         );
 
-        // 2. São Paulo - Quarteirão Comercial / Corporativo (Faria Lima / Itaim Bibi) ~9.800 m²
+        // 2. São Paulo - Corporate Commercial Block (Faria Lima / Itaim Bibi) ~9,800 m²
         createPlot(
-                "Quadra Corporativa Faria Lima - Itaim Bibi",
-                "Terreno de quarteirão com quase 1 hectare em um dos eixos comerciais mais valorizados da América Latina. Potencial construtivo para torre corporativa Triple A.",
+                "Faria Lima Corporate Block - Itaim Bibi",
+                "Prime corporate city block plot of nearly 1 hectare in one of Latin America's most prestigious financial districts. High FAR approved for Triple-A corporate skyscraper.",
                 new BigDecimal("95000000.00"),
                 "corporate.sp@landmark.com.br | (11) 99876-5432",
                 List.of(
@@ -101,10 +101,10 @@ public class LandPlotDataLoader implements CommandLineRunner {
                 )
         );
 
-        // 3. São Paulo - Centro Logístico / Galpão Industrial (Rodoanel / Barueri) ~48.000 m² (4.8 ha)
+        // 3. São Paulo - Logistics & Distribution Center (Rodoanel / Barueri) ~48,000 m² (4.8 ha)
         createPlot(
-                "Parque Logístico Rodoanel Oeste",
-                "Área industrial e logística estratégica de 48.000 m² com acesso imediato ao Rodoanel Mário Covas. Terraplenagem pronta para centro de distribuição ou cross-docking.",
+                "Rodoanel West Logistics Park",
+                "Strategic 48,000 m² industrial and logistics development site with immediate access to Mario Covas Ring Road. Graded and permitted for distribution center or cross-docking.",
                 new BigDecimal("28500000.00"),
                 "logistica.sp@landmark.com.br | (11) 97321-9876",
                 List.of(
@@ -116,10 +116,10 @@ public class LandPlotDataLoader implements CommandLineRunner {
                 )
         );
 
-        // 4. Natal (RN) - Lote Beira-Mar (Ponta Negra / Via Costeira) ~1.850 m²
+        // 4. Natal (RN) - Oceanfront Beach Parcel (Ponta Negra / Via Costeira) ~1,850 m²
         createPlot(
-                "Terreno Frente-Mar Ponta Negra",
-                "Terreno beira-mar de 1.850 m² na orla de Ponta Negra, com vista panorâmica para o Morro do Careca. Zoneamento favorável para hotel boutique, pousada ou beach club.",
+                "Ponta Negra Oceanfront Parcel",
+                "Prime 1,850 m² beachfront parcel along the Ponta Negra coastline with panoramic views of Morro do Careca. Favorable zoning for boutique resort, hotel or beach club.",
                 new BigDecimal("4200000.00"),
                 "litoral.rn@landmark.com.br | (84) 98877-6655",
                 List.of(
@@ -131,10 +131,10 @@ public class LandPlotDataLoader implements CommandLineRunner {
                 )
         );
 
-        // 5. Goiás (Rio Verde) - Grande Fazenda de Grãos ~1.250 hectares (12.500.000 m²)
+        // 5. Goiás (Rio Verde) - Large Grain Agriculture Estate ~1,250 hectares (12,500,000 m²)
         createPlot(
-                "Fazenda Santa Fé - 1.250 ha de Soja e Milho",
-                "Propriedade agrícola altamente produtiva em Rio Verde (GO), 100% plana com pivôs de irrigação instalados, outorga de água e silos graneleiros próprios.",
+                "Santa Fe Agricultural Estate - 1,250 ha Soy & Corn",
+                "Highly productive agricultural estate in Rio Verde (GO), 100% flat arable land equipped with center pivot irrigation systems, water usage concession, and grain storage silos.",
                 new BigDecimal("78000000.00"),
                 "agro.goias@landmark.com.br | (64) 99234-5678",
                 List.of(
@@ -146,10 +146,10 @@ public class LandPlotDataLoader implements CommandLineRunner {
                 )
         );
 
-        // 6. Mato Grosso do Sul / Pantanal (Miranda) - Mega Fazenda Agropecuária ~8.200 hectares (82.000.000 m²)
+        // 6. Mato Grosso do Sul / Pantanal (Miranda) - Mega Livestock & Crop Ranch ~8,200 hectares (82,000,000 m²)
         createPlot(
-                "Mega Fazenda Pantanal Sul - 8.200 Hectares",
-                "Mega propriedade com dupla aptidão (pecuária de corte e agricultura tecnificada). Pista de pouso homologada, sede colonial, confinamento e pastagens formadas.",
+                "Pantanal South Mega Ranch - 8,200 Hectares",
+                "Expansive dual-purpose ranch (livestock and mechanized farming) in Miranda (MS). Includes licensed private airstrip, colonial main house, cattle feeding facilities, and fenced pastures.",
                 new BigDecimal("165000000.00"),
                 "mega.agro@landmark.com.br | (67) 98111-2233",
                 List.of(
@@ -161,10 +161,10 @@ public class LandPlotDataLoader implements CommandLineRunner {
                 )
         );
 
-        // 7. Curitiba (PR) - Batel / Ecoville - Terreno para Edifício Residencial ~2.400 m²
+        // 7. Curitiba (PR) - Batel / Ecoville - High-Rise Residential Lot ~2,400 m²
         createPlot(
-                "Terreno de Esquina Ecoville / Batel",
-                "Terreno nobre de 2.400 m² na arborizada 'rua do outono' em Curitiba. Coeficiente de aproveitamento ideal para empreendimento residencial de alto padrão.",
+                "Ecoville / Batel Corner Lot",
+                "Prime 2,400 m² residential corner lot on tree-lined street in Curitiba's elite Batel / Ecoville district. Optimal building coefficient for luxury residential tower.",
                 new BigDecimal("14800000.00"),
                 "curitiba.prime@landmark.com.br | (41) 98456-7890",
                 List.of(
@@ -176,10 +176,10 @@ public class LandPlotDataLoader implements CommandLineRunner {
                 )
         );
 
-        // 8. Serra da Mantiqueira (Campos do Jordão / Santo Antônio do Pinhal) - Sítio de Ecoturismo ~95.000 m² (9.5 ha)
+        // 8. Mantiqueira Mountain Range (Campos do Jordão / Santo Antônio do Pinhal) ~95,000 m² (9.5 ha)
         createPlot(
-                "Sítio Alto da Mantiqueira - Nascentes e Araucárias",
-                "Propriedade rural de 9.5 hectares com vista cinematográfica para as montanhas, 3 nascentes de água cristalina, bosque de araucárias preservadas e chalé rústico.",
+                "High Mantiqueira Mountain Retreat - Natural Springs & Pines",
+                "Scenic 9.5-hectare mountain property featuring panoramic views, 3 crystalline natural water springs, preserved Araucaria pine forest, and a rustic lodge.",
                 new BigDecimal("3200000.00"),
                 "mantiqueira.sitios@landmark.com.br | (12) 99122-3344",
                 List.of(

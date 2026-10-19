@@ -76,10 +76,10 @@ describe('authApi service', () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 401,
-      json: async () => ({ message: 'Credenciais inválidas' }),
+      json: async () => ({ message: 'Invalid email or password' }),
     });
 
-    await expect(login('maria@test.com', 'wrong')).rejects.toThrow('Credenciais inválidas');
+    await expect(login('maria@test.com', 'wrong')).rejects.toThrow('Invalid email or password');
   });
 
   it('registers successfully and saves session', async () => {

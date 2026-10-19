@@ -129,14 +129,14 @@ Upon startup, `LandPlotDataLoader` automatically populates the database with 8 r
 
 | # | Location | Title | Type / Scope | Calculated Area | Price (R$) |
 |---|---|---|---|---|---|
-| 1 | **São Paulo (Jardins)** | Lote Residencial Jardins - Al. Lorena | Residential House Lot | **623 m²** | R$ 3.850.000,00 |
-| 2 | **São Paulo (Faria Lima)** | Quadra Corporativa Faria Lima - Itaim Bibi | Commercial City Block | **10.198 m²** (~1 ha) | R$ 95.000.000,00 |
-| 3 | **São Paulo (Rodoanel)** | Parque Logístico Rodoanel Oeste | Industrial Logistics Park | **68.030 m²** (6.8 ha) | R$ 28.500.000,00 |
-| 4 | **Natal (RN - Ponta Negra)** | Terreno Frente-Mar Ponta Negra | Beachfront / Hospitality | **36.898 m²** (3.6 ha) | R$ 4.200.000,00 |
-| 5 | **Goiás (Rio Verde)** | Fazenda Santa Fé - Soja e Milho | Grain Farm | **12.364.538 m²** (1.236 ha) | R$ 78.000.000,00 |
-| 6 | **Pantanal / MS (Miranda)** | Mega Fazenda Pantanal Sul | Mega Cattle & Crop Farm | **93.008.373 m²** (9.300 ha) | R$ 165.000.000,00 |
-| 7 | **Curitiba (PR - Batel)** | Terreno de Esquina Ecoville / Batel | High-Rise Residential Lot | **55.828 m²** (5.5 ha) | R$ 14.800.000,00 |
-| 8 | **Mantiqueira (Campos do Jordão)**| Sítio Alto da Mantiqueira | Ecotourism / Mountain Farm | **1.139.990 m²** (114 ha) | R$ 3.200.000,00 |
+| 1 | **São Paulo (Jardins)** | Jardins Residential Lot - Lorena Avenue | Residential House Lot | **623 m²** | R$ 3.850.000,00 |
+| 2 | **São Paulo (Faria Lima)** | Faria Lima Corporate Block - Itaim Bibi | Commercial City Block | **10.198 m²** (~1 ha) | R$ 95.000.000,00 |
+| 3 | **São Paulo (Rodoanel)** | Rodoanel West Logistics Park | Industrial Logistics Park | **68.030 m²** (6.8 ha) | R$ 28.500.000,00 |
+| 4 | **Natal (RN - Ponta Negra)** | Ponta Negra Oceanfront Parcel | Beachfront / Hospitality | **36.898 m²** (3.6 ha) | R$ 4.200.000,00 |
+| 5 | **Goiás (Rio Verde)** | Santa Fe Agricultural Estate - Soy & Corn | Grain Farm | **12.364.538 m²** (1.236 ha) | R$ 78.000.000,00 |
+| 6 | **Pantanal / MS (Miranda)** | Pantanal South Mega Ranch | Mega Cattle & Crop Farm | **93.008.373 m²** (9.300 ha) | R$ 165.000.000,00 |
+| 7 | **Curitiba (PR - Batel)** | Ecoville / Batel Corner Lot | High-Rise Residential Lot | **55.828 m²** (5.5 ha) | R$ 14.800.000,00 |
+| 8 | **Mantiqueira (Campos do Jordão)**| High Mantiqueira Mountain Retreat | Ecotourism / Mountain Farm | **1.139.990 m²** (114 ha) | R$ 3.200.000,00 |
 
 ---
 
