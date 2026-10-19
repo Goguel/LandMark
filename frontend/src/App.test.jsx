@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import App from './App';
 import * as plotApi from './services/plotApi';
+import * as authApi from './services/authApi';
 
 // Mock OpenLayers MapContainer to avoid canvas / webgl issues in JSDOM
 vi.mock('./components/Map/MapContainer', () => ({
-  MapContainer: ({ plots, mode, onPolygonCompleted, onRadiusSearchCompleted }) => (
+  MapContainer: ({ plots, mode, onPolygonCompleted, onRadiusSearchCompleted, onDeletePlot }) => (
     <div data-testid="mock-map-container">
       <div data-testid="plots-count">{plots.length}</div>
       <div data-testid="current-mode">{mode}</div>
@@ -47,6 +48,14 @@ vi.mock('./components/Map/MapContainer', () => ({
       >
         Simulate Circle
       </button>
+      {onDeletePlot && (
+        <button
+          data-testid="simulate-delete-first-plot"
+          onClick={() => plots.length > 0 && onDeletePlot(plots[0].id)}
+        >
+          Simulate Delete
+        </button>
+      )}
     </div>
   ),
 }));
@@ -71,8 +80,17 @@ describe('App Component Integration', () => {
     },
   ];
 
+  const mockUser = {
+    id: 'user-uuid-1',
+    name: 'Test Agent',
+    email: 'agent@landmark.com',
+    role: 'ROLE_USER',
+  };
+
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.spyOn(authApi, 'getStoredUser').mockReturnValue(mockUser);
+    vi.spyOn(authApi, 'getStoredToken').mockReturnValue('mock-jwt-token');
   });
 
   it('loads and displays initial registered plots', async () => {
@@ -292,5 +310,78 @@ describe('App Component Integration', () => {
     });
 
     vi.useRealTimers();
+  });
+
+  it('prevents polygon drawing and prompts auth modal when user is not logged in', async () => {
+    vi.spyOn(authApi, 'getStoredUser').mockReturnValue(null);
+    vi.spyOn(plotApi, 'fetchAllPlots').mockResolvedValue(mockPlots);
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('plots-count')).toHaveTextContent('2');
+    });
+
+    // Clicking Draw Plot in toolbar while unauthenticated prompts auth
+    const drawPlotBtn = screen.getByRole('button', { name: /Draw Plot/i });
+    fireEvent.click(drawPlotBtn);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText(/Please sign in or create an account to publish a land plot/i)).toBeInTheDocument();
+  });
+
+  it('prompts auth modal if polygon completion occurs while unauthenticated', async () => {
+    vi.spyOn(authApi, 'getStoredUser').mockReturnValue(null);
+    vi.spyOn(plotApi, 'fetchAllPlots').mockResolvedValue(mockPlots);
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('plots-count')).toHaveTextContent('2');
+    });
+
+    fireEvent.click(screen.getByTestId('simulate-draw-polygon'));
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText(/Please sign in or create an account to register a land plot/i)).toBeInTheDocument();
+  });
+
+  it('handles user logout successfully', async () => {
+    vi.spyOn(plotApi, 'fetchAllPlots').mockResolvedValue(mockPlots);
+    const clearSessionSpy = vi.spyOn(authApi, 'clearSession');
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Agent')).toBeInTheDocument();
+    });
+
+    const logoutBtn = screen.getByRole('button', { name: /Sign Out/i });
+    fireEvent.click(logoutBtn);
+
+    expect(clearSessionSpy).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByText(/Signed out successfully/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Sign In/i })).toBeInTheDocument();
+    });
+  });
+
+  it('handles plot deletion successfully', async () => {
+    vi.spyOn(plotApi, 'fetchAllPlots').mockResolvedValue(mockPlots);
+    vi.spyOn(plotApi, 'deletePlot').mockResolvedValue({});
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('plots-count')).toHaveTextContent('2');
+    });
+
+    fireEvent.click(screen.getByTestId('simulate-delete-first-plot'));
+
+    await waitFor(() => {
+      expect(plotApi.deletePlot).toHaveBeenCalledWith('uuid-1');
+      expect(screen.getByTestId('plots-count')).toHaveTextContent('1');
+      expect(screen.getByText(/Land plot deleted successfully/i)).toBeInTheDocument();
+    });
   });
 });

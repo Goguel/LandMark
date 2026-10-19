@@ -5,11 +5,16 @@ import { MapContainer } from './components/Map/MapContainer';
 import { PlotCreationModal } from './components/Modals/PlotCreationModal';
 import { PlotListPanel } from './components/Sidebar/PlotListPanel';
 import { ToastContainer } from './components/Toast/ToastContainer';
-import { fetchAllPlots, searchPlotsByRadius, registerPlot } from './services/plotApi';
+import { fetchAllPlots, searchPlotsByRadius, registerPlot, deletePlot } from './services/plotApi';
+import { getStoredUser, clearSession } from './services/authApi';
+import { AuthModal } from './components/Modals/AuthModal';
 import { formatCurrency } from './utils/geoUtils';
 import './App.css';
 
 export function App() {
+  const [currentUser, setCurrentUser] = useState(() => getStoredUser());
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
   const [plots, setPlots] = useState([]);
   const [allPlots, setAllPlots] = useState([]);
   const [selectedPlot, setSelectedPlot] = useState(null);
@@ -55,13 +60,42 @@ export function App() {
     loadPlots();
   }, [loadPlots]);
 
+  // Auth handlers
+  const handleLogout = useCallback(() => {
+    clearSession();
+    setCurrentUser(null);
+    addToast('info', 'Signed out successfully.', 'Sign Out');
+  }, [addToast]);
+
+  const handleAuthSuccess = useCallback((user) => {
+    setCurrentUser(user);
+    setIsAuthModalOpen(false);
+    addToast('success', `Welcome back, ${user.name}!`, 'Authenticated');
+  }, [addToast]);
+
+  // Mode changer with auth guard for plot drawing
+  const handleSetMode = useCallback((newMode) => {
+    if (newMode === 'draw_polygon' && !currentUser) {
+      setIsAuthModalOpen(true);
+      addToast('warning', 'Please sign in or create an account to publish a land plot.', 'Authentication Required');
+      return;
+    }
+    setMode(newMode);
+  }, [currentUser, addToast]);
+
   // Handle polygon drawing completion
   const handlePolygonCompleted = useCallback((drawnData) => {
+    if (!currentUser) {
+      setMode('view');
+      setIsAuthModalOpen(true);
+      addToast('warning', 'Please sign in or create an account to register a land plot.', 'Authentication Required');
+      return;
+    }
     setDraftPolygon(drawnData);
     setIsModalOpen(true);
     setSubmitError(null);
     setMode('view'); // Exit drawing mode so user can interact with modal
-  }, []);
+  }, [currentUser, addToast]);
 
   // Handle modal close / cancellation
   const handleModalClose = useCallback(() => {
@@ -114,6 +148,21 @@ export function App() {
       }
     }
   }, [draftPolygon, loadPlots, addToast]);
+
+  // Handle plot deletion
+  const handleDeletePlot = useCallback(async (plotId) => {
+    try {
+      await deletePlot(plotId);
+      setPlots((prev) => prev.filter((p) => p.id !== plotId));
+      setAllPlots((prev) => prev.filter((p) => p.id !== plotId));
+      setSelectedPlot(null);
+      addToast('success', 'Land plot deleted successfully.', 'Deleted');
+    } catch (err) {
+      console.error('Failed to delete plot:', err);
+      addToast('error', err.message || 'Failed to delete land plot.', 'Error');
+      throw err;
+    }
+  }, [addToast]);
 
   // Handle radius search completion
   const handleRadiusSearchCompleted = useCallback(async ({ latitude, longitude, radiusMeters }) => {
@@ -172,12 +221,15 @@ export function App() {
         onClearFilter={handleClearFilter}
         onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
         isSidebarOpen={isSidebarOpen}
+        currentUser={currentUser}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        onLogout={handleLogout}
       />
 
       <main className="map-main">
         <MapToolbar
           mode={mode}
-          setMode={setMode}
+          setMode={handleSetMode}
           activeFilter={activeFilter}
           onClearFilter={handleClearFilter}
           onResetView={handleResetView}
@@ -194,6 +246,8 @@ export function App() {
           onRadiusSearchCompleted={handleRadiusSearchCompleted}
           onRadiusTooSmall={handleRadiusTooSmall}
           resetViewTrigger={resetViewTrigger}
+          currentUser={currentUser}
+          onDeletePlot={handleDeletePlot}
         />
 
         <PlotListPanel
@@ -214,6 +268,12 @@ export function App() {
         areaM2={draftPolygon?.areaM2 || 0}
         isSubmitting={isSubmitting}
         error={submitError}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
       />
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
