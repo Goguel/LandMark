@@ -2,6 +2,8 @@
  * API service for LandMark spatial real estate backend.
  */
 
+import { getStoredToken } from './authApi';
+
 const API_BASE_URL = '/api/plots';
 
 /**
@@ -15,6 +17,8 @@ export class ApiError extends Error {
     this.details = details;
     this.isConflict = status === 409;
     this.isValidation = status === 400;
+    this.isForbidden = status === 403;
+    this.isUnauthorized = status === 401;
   }
 }
 
@@ -43,15 +47,30 @@ async function handleResponse(response) {
 }
 
 /**
+ * Helper to build common headers including JWT Bearer token when available.
+ */
+function buildHeaders(extraHeaders = {}) {
+  const headers = {
+    'Accept': 'application/json',
+    ...extraHeaders,
+  };
+
+  const token = getStoredToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
+/**
  * Fetches all registered land plots.
  * @returns {Promise<Array>} Array of LandPlotResponseDTO objects
  */
 export async function fetchAllPlots() {
   const response = await fetch(API_BASE_URL, {
     method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-    },
+    headers: buildHeaders(),
   });
   return handleResponse(response);
 }
@@ -72,25 +91,20 @@ export async function searchPlotsByRadius(latitude, longitude, radiusInMeters) {
 
   const response = await fetch(`${API_BASE_URL}/search/radius?${params.toString()}`, {
     method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-    },
+    headers: buildHeaders(),
   });
   return handleResponse(response);
 }
 
 /**
- * Registers a new land plot.
- * @param {Object} plotData { totalPrice, description, contactInfo, geometry: { type: 'Polygon', coordinates: [...] } }
+ * Registers a new land plot (requires authenticated user).
+ * @param {Object} plotData { title, totalPrice, description, contactInfo, geometry: { type: 'Polygon', coordinates: [...] } }
  * @returns {Promise<Object>} Created LandPlotResponseDTO
  */
 export async function registerPlot(plotData) {
   const response = await fetch(API_BASE_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
+    headers: buildHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(plotData),
   });
   return handleResponse(response);
@@ -104,9 +118,20 @@ export async function registerPlot(plotData) {
 export async function fetchPlotById(id) {
   const response = await fetch(`${API_BASE_URL}/${id}`, {
     method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-    },
+    headers: buildHeaders(),
+  });
+  return handleResponse(response);
+}
+
+/**
+ * Deletes a land plot by its UUID (requires authenticated owner or admin).
+ * @param {string} id UUID of the plot
+ * @returns {Promise<void>}
+ */
+export async function deletePlot(id) {
+  const response = await fetch(`${API_BASE_URL}/${id}`, {
+    method: 'DELETE',
+    headers: buildHeaders(),
   });
   return handleResponse(response);
 }
