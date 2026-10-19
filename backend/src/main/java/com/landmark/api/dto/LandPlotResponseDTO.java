@@ -12,6 +12,8 @@ public record LandPlotResponseDTO(
         String contact,
         GeoJsonPolygonDTO geometry,
         Double areaSquareMeters,
+        UUID ownerId,
+        String ownerName,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

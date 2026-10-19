@@ -20,6 +20,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
+@AllArgsConstructor
 public class LandPlot {
 
     @Id
@@ -43,6 +44,10 @@ public class LandPlot {
 
     @Column(name = "area_square_meters")
     private Double areaSquareMeters;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User owner;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
