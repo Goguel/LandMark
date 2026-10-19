@@ -30,7 +30,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/landmark_db
       SPRING_DATASOURCE_USERNAME: landmark_user
       SPRING_DATASOURCE_PASSWORD: landmark_pass
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
     ports:
       - "8080:8080"
 

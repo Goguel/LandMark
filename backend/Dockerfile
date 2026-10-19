@@ -4,11 +4,11 @@ WORKDIR /app
 
 # Cache Maven dependencies
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
+RUN mvn dependency:resolve -B
 
 # Build application
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn package -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
