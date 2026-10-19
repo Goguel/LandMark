@@ -21,7 +21,7 @@ CREATE INDEX IF NOT EXISTS idx_land_plots_user_id ON land_plots(user_id);
 INSERT INTO users (id, name, email, password, role, created_at)
 VALUES (
     'a0000000-0000-0000-0000-000000000001',
-    'Administrador LandMark',
+    'LandMark Administrator',
     'admin@landmark.com',
     '$2a$10$rGugEUqNR99/kOqTlM48bOxJW0zW.BWo2rQtzJRTY.YsLQoCV661q',
     'ROLE_ADMIN',

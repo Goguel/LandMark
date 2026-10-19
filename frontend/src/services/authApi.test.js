@@ -120,7 +120,7 @@ describe('authApi service', () => {
       status: 400,
       json: async () => ({
         message: 'Validation failed',
-        validationErrors: { email: 'E-mail inválido' },
+        validationErrors: { email: 'Invalid email address' },
       }),
     });
 
@@ -130,7 +130,7 @@ describe('authApi service', () => {
     } catch (err) {
       expect(err).toBeInstanceOf(AuthError);
       expect(err.status).toBe(400);
-      expect(err.errors).toEqual({ email: 'E-mail inválido' });
+      expect(err.errors).toEqual({ email: 'Invalid email address' });
     }
   });
 

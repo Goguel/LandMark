@@ -48,7 +48,7 @@ class LandPlotDataLoaderTest {
     void setUp() {
         sampleAdmin = User.builder()
                 .id(UUID.fromString("a0000000-0000-0000-0000-000000000001"))
-                .name("Administrador LandMark")
+                .name("LandMark Administrator")
                 .email("admin@landmark.com")
                 .password("hashed_password")
                 .role(Role.ROLE_ADMIN)

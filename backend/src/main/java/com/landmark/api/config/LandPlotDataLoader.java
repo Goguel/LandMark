@@ -4,12 +4,16 @@ import com.landmark.api.dto.GeoJsonPolygonDTO;
 import com.landmark.api.dto.LandPlotRequestDTO;
 import com.landmark.api.repository.LandPlotRepository;
 import com.landmark.api.service.LandPlotService;
+import com.landmark.api.entity.User;
+import com.landmark.api.entity.Role;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -39,14 +43,14 @@ public class LandPlotDataLoader implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // Ensure default administrator account exists
-        com.landmark.api.entity.User admin = userRepository.findByEmail("admin@landmark.com")
+        User admin = userRepository.findByEmail("admin@landmark.com")
                 .orElseGet(() -> {
-                    com.landmark.api.entity.User newAdmin = com.landmark.api.entity.User.builder()
+                    User newAdmin = User.builder()
                             .id(java.util.UUID.fromString("a0000000-0000-0000-0000-000000000001"))
-                            .name("Administrador LandMark")
+                            .name("LandMark Administrator")
                             .email("admin@landmark.com")
                             .password(passwordEncoder.encode("Landmark@123"))
-                            .role(com.landmark.api.entity.Role.ROLE_ADMIN)
+                            .role(Role.ROLE_ADMIN)
                             .build();
                     return userRepository.save(newAdmin);
                 });
@@ -59,8 +63,8 @@ public class LandPlotDataLoader implements CommandLineRunner {
 
         log.info("LandPlotDataLoader: Seeding database with 8 initial landmark plots across Brazil...");
 
-        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
-                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
                         admin.getEmail(), null, admin.getAuthorities()
                 )
         );
