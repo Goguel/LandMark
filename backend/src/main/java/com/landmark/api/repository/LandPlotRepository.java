@@ -58,4 +58,9 @@ public interface LandPlotRepository extends JpaRepository<LandPlot, UUID> {
             WHERE ST_Intersects(l.geometry, :searchGeometry) = true
             """, nativeQuery = true)
     List<LandPlot> findIntersectingGeometry(@Param("searchGeometry") Polygon searchGeometry);
+
+    /**
+     * Finds all land plots owned by a specific user, ordered by creation date descending.
+     */
+    List<LandPlot> findByOwnerIdOrderByCreatedAtDesc(UUID ownerId);
 }

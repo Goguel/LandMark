@@ -270,4 +270,38 @@ class LandPlotServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> service.deletePlot(id));
         verify(repository, never()).delete(any());
     }
+
+    @Test
+    @DisplayName("Should return plots owned by the current authenticated user")
+    void shouldReturnPlotsOwnedByCurrentAuthenticatedUser() {
+        UUID userId = UUID.randomUUID();
+        com.landmark.api.entity.User currentUser = com.landmark.api.entity.User.builder()
+                .id(userId)
+                .name("Current Owner")
+                .email("owner@landmark.com")
+                .role(com.landmark.api.entity.Role.ROLE_USER)
+                .build();
+        sampleEntity.setOwner(currentUser);
+
+        when(authService.getCurrentAuthenticatedUser()).thenReturn(currentUser);
+        when(repository.findByOwnerIdOrderByCreatedAtDesc(userId)).thenReturn(List.of(sampleEntity));
+
+        List<LandPlotResponseDTO> results = service.findPlotsByCurrentUser();
+
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals(sampleEntity.getId(), results.get(0).id());
+        assertEquals("Current Owner", results.get(0).ownerName());
+        verify(repository, times(1)).findByOwnerIdOrderByCreatedAtDesc(userId);
+    }
+
+    @Test
+    @DisplayName("Should throw AccessDeniedException when unauthenticated user attempts to get their plots")
+    void shouldThrowAccessDeniedWhenUnauthenticatedUserAttemptsToGetPlots() {
+        when(authService.getCurrentAuthenticatedUser()).thenReturn(null);
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class,
+                () -> service.findPlotsByCurrentUser());
+        verify(repository, never()).findByOwnerIdOrderByCreatedAtDesc(any());
+    }
 }

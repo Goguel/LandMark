@@ -113,6 +113,21 @@ public class LandPlotServiceImpl implements LandPlotService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<LandPlotResponseDTO> findPlotsByCurrentUser() {
+        com.landmark.api.entity.User currentUser = authService.getCurrentAuthenticatedUser();
+        if (currentUser == null) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You must be authenticated to view your registered plots."
+            );
+        }
+
+        return repository.findByOwnerIdOrderByCreatedAtDesc(currentUser.getId()).stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public void deletePlot(UUID id) {
         LandPlot plot = repository.findById(id)

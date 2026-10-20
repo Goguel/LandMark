@@ -20,5 +20,7 @@ public interface LandPlotService {
 
     List<LandPlotResponseDTO> findIntersectingGeometry(GeoJsonPolygonDTO searchPolygonDTO);
 
+    List<LandPlotResponseDTO> findPlotsByCurrentUser();
+
     void deletePlot(UUID id);
 }
