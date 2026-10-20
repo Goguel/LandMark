@@ -133,10 +133,10 @@ describe('PlotListPanel Component', () => {
       />
     );
 
-    expect(screen.getByText('⭕ Filter Active')).toBeInTheDocument();
+    expect(screen.getByText('⭕ Radius Active')).toBeInTheDocument();
     expect(screen.getByText('Within 300m')).toBeInTheDocument();
 
-    const clearBtn = screen.getByRole('button', { name: /Clear Filter/i });
+    const clearBtn = screen.getByRole('button', { name: /^Clear$/i });
     fireEvent.click(clearBtn);
     expect(onClearFilter).toHaveBeenCalledTimes(1);
   });
@@ -157,5 +157,77 @@ describe('PlotListPanel Component', () => {
 
     fireEvent.click(screen.getByText('Downtown plot'));
     expect(onSelectPlot).toHaveBeenCalledWith(mockPlots[0]);
+  });
+
+  it('handles switching to My Plots tab when user is logged in', () => {
+    const onToggleOnlyMine = vi.fn();
+    const mockUser = { id: 'user-1', name: 'Alice' };
+    const plotsWithOwner = [
+      { ...mockPlots[0], ownerId: 'user-1', ownerName: 'Alice' },
+      { ...mockPlots[1], ownerId: 'other-user', ownerName: 'Bob' },
+    ];
+
+    render(
+      <PlotListPanel
+        isOpen={true}
+        onClose={vi.fn()}
+        plots={plotsWithOwner}
+        allPlots={plotsWithOwner}
+        currentUser={mockUser}
+        filterOnlyMine={false}
+        onToggleFilterOnlyMine={onToggleOnlyMine}
+      />
+    );
+
+    expect(screen.getByText(/All Plots/i)).toBeInTheDocument();
+    expect(screen.getByText(/My Plots/i)).toBeInTheDocument();
+    expect(screen.getByText('★ My Plot')).toBeInTheDocument();
+
+    const myPlotsTab = screen.getByRole('tab', { name: /My Plots/i });
+    fireEvent.click(myPlotsTab);
+    expect(onToggleOnlyMine).toHaveBeenCalledWith(true);
+  });
+
+  it('prompts auth modal if guest clicks My Plots tab', () => {
+    const onOpenAuth = vi.fn();
+
+    render(
+      <PlotListPanel
+        isOpen={true}
+        onClose={vi.fn()}
+        plots={mockPlots}
+        allPlots={mockPlots}
+        currentUser={null}
+        filterOnlyMine={false}
+        onOpenAuthModal={onOpenAuth}
+      />
+    );
+
+    const myPlotsTab = screen.getByRole('tab', { name: /My Plots/i });
+    fireEvent.click(myPlotsTab);
+    expect(onOpenAuth).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders empty portfolio state with draw plot button when user has no plots', () => {
+    const onStartDraw = vi.fn();
+    const mockUser = { id: 'user-empty', name: 'New User' };
+
+    render(
+      <PlotListPanel
+        isOpen={true}
+        onClose={vi.fn()}
+        plots={[]}
+        allPlots={mockPlots}
+        currentUser={mockUser}
+        filterOnlyMine={true}
+        onStartDrawPlot={onStartDraw}
+      />
+    );
+
+    expect(screen.getByText('No Plots in Your Portfolio')).toBeInTheDocument();
+    const drawBtn = screen.getByRole('button', { name: /Draw Your First Plot/i });
+    expect(drawBtn).toBeInTheDocument();
+    fireEvent.click(drawBtn);
+    expect(onStartDraw).toHaveBeenCalledTimes(1);
   });
 });

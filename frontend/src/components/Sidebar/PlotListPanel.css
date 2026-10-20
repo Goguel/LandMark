@@ -234,6 +234,109 @@
   line-height: 1.4;
 }
 
+/* Scope Tabs (All Plots vs My Plots) */
+.panel-scope-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(15, 23, 42, 0.45);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.scope-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.scope-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.scope-tab.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.12);
+}
+
+.scope-tab .tab-count {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.scope-tab.active .tab-count {
+  background: rgba(16, 185, 129, 0.3);
+  color: #ffffff;
+}
+
+.scope-tab .tab-lock-icon {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* Plot Card Title & Badges */
+.plot-card-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 4px 0 6px 0;
+  line-height: 1.25;
+}
+
+.plot-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.my-plot-tag {
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #34d399;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+/* Call to action in empty portfolio state */
+.btn-draw-first-plot {
+  margin-top: 14px;
+  background: var(--accent-emerald);
+  color: #022c22;
+  font-weight: 700;
+  font-size: 0.84rem;
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all 180ms ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-draw-first-plot:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
+}
+
 @keyframes slideInRight {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
