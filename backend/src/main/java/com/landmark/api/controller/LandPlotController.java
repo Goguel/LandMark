@@ -56,6 +56,19 @@ public class LandPlotController {
         return ResponseEntity.ok(landPlotService.findAll());
     }
 
+    @GetMapping("/my-plots")
+    @Operation(
+            summary = "List land plots registered by current authenticated user",
+            description = "Retrieves only the plots owned by the logged-in user."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of plots owned by current user"),
+            @ApiResponse(responseCode = "401", description = "User is not authenticated")
+    })
+    public ResponseEntity<List<LandPlotResponseDTO>> getMyPlots() {
+        return ResponseEntity.ok(landPlotService.findPlotsByCurrentUser());
+    }
+
     @GetMapping("/{id}")
     @Operation(
             summary = "Get a land plot by ID",

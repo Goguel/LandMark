@@ -215,4 +215,17 @@ class LandPlotControllerTest {
 
         verify(landPlotService, times(1)).deletePlot(id);
     }
+
+    @Test
+    @DisplayName("GET /api/plots/my-plots should return 200 OK with plots owned by user")
+    void shouldGetMyPlots() throws Exception {
+        when(landPlotService.findPlotsByCurrentUser()).thenReturn(List.of(sampleResponse));
+
+        mockMvc.perform(get("/api/plots/my-plots"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value(sampleResponse.title()));
+
+        verify(landPlotService, times(1)).findPlotsByCurrentUser();
+    }
 }
