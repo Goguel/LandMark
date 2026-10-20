@@ -21,6 +21,7 @@
   - [2.2. Geodesic Proximity on the WGS84 Ellipsoid](#22-geodesic-proximity-on-the-wgs84-ellipsoid)
   - [2.3. Flyway Versioning & `ddl-auto: validate`](#23-flyway-versioning--ddl-auto-validate)
   - [2.4. React 18 + OpenLayers Decoupled Overlay Architecture](#24-react-18--openlayers-decoupled-overlay-architecture)
+  - [2.5. Stateless JWT Authentication & Land Ownership](#25-stateless-jwt-authentication--land-ownership)
 - [3. Interactive API Documentation (Swagger / OpenAPI 3)](#3-interactive-api-documentation-swagger--openapi-3)
 - [4. Preloaded Brazilian Land Catalog (Seed Data)](#4-preloaded-brazilian-land-catalog-seed-data)
 - [5. Quick Start with Docker Compose (Recommended)](#5-quick-start-with-docker-compose-recommended)
@@ -35,6 +36,9 @@
 - **Topological Overlap Detection**: The backend prevents double-allocation by validating that proposed plots do not overlap pre-existing lands (returns HTTP `409 Conflict`).
 - **Dynamic Radius Proximity Search**: Users define custom circular search zones directly on the map by expanding a radius HUD in real time, filtering all intersecting plots.
 - **Interactive Property Inspection**: Clicking any registered plot reveals property details, calculated dimensions, price in Brazilian Reais (`R$`), and seller contact.
+- **Secure Authentication & User Accounts (Spring Security + JWT)**: Stateless authentication with BCrypt password hashing. Users register and log in to advertise land parcels, view their account badge, and manage their listings.
+- **Personal Portfolio ("My Plots") Filtering**: Authenticated users can toggle their personal portfolio view in the sidebar or map to immediately filter and inspect only the land plots they own.
+- **Plot Ownership & Protected Deletion**: Plots are permanently linked to their creator (`user_id`). Deletion is strictly enforced: only the verified plot owner or an administrator (`ROLE_ADMIN`) has authorization to delete a parcel (returns HTTP `403 Forbidden` otherwise).
 - **High-Resolution Multi-Basemaps**:
   - 🌙 **Dark Minimal** (Esri Canvas Dark with continuous overzooming)
   - 🌐 **Google Hybrid** (Ultra high-res aerial satellite photography with street names up to zoom 21, perfect for house-level parcels)
@@ -57,10 +61,10 @@ graph TD
     DB[("PostgreSQL 16 + PostGIS 3.4")]
     Swagger["OpenAPI 3 / Swagger UI"]
 
-    Client -->|HTTP REST / GeoJSON EPSG:4326| API
+    Client -->|HTTP REST + Bearer JWT / GeoJSON EPSG:4326| API
     API -->|Hibernate Spatial + JTS| DB
-    Flyway -->|Versioned DDL & GiST Index| DB
-    API -->|Generates Docs| Swagger
+    Flyway -->|Versioned DDL V1 & V2 + GiST Index| DB
+    API -->|Generates Docs + JWT Security Scheme| Swagger
 ```
 
 ### 2.1. Spatial Overlap Logic: Why `ST_Dimension = 2`?
@@ -89,9 +93,9 @@ ST_DWithin(
 This guarantees that a 5,000m radius search covers exactly 5,000 real meters on the curved Earth spheroid.
 
 ### 2.3. Flyway Versioning & `ddl-auto: validate`
-Instead of brittle runtime DDL manipulation (`ddl-auto: update`), the database schema is strictly managed via **Flyway migrations** (`V1__create_spatial_schema.sql`):
-- Explicit PostGIS extension activation (`CREATE EXTENSION IF NOT EXISTS postgis`).
-- Spatial GiST index creation (`CREATE INDEX idx_land_plots_geometry ON land_plots USING GIST (geometry)`).
+Instead of brittle runtime DDL manipulation (`ddl-auto: update`), the database schema is strictly managed via **Flyway migrations**:
+- `V1__create_spatial_schema.sql`: Explicit PostGIS extension activation (`CREATE EXTENSION IF NOT EXISTS postgis`) and spatial GiST index creation (`CREATE INDEX idx_land_plots_geometry ON land_plots USING GIST (geometry)`).
+- `V2__create_users_and_ownership.sql`: Creates `users` table with unique email indexing, BCrypt password hashing, and binds `land_plots` to owner user accounts (`user_id UUID REFERENCES users(id)`).
 - Hibernate runs in `validate` mode to ensure strict schema adherence without unexpected schema drift.
 
 ### 2.4. React 18 + OpenLayers Decoupled Overlay Architecture
@@ -99,25 +103,37 @@ OpenLayers overlays reparent DOM elements into its internal viewport container. 
 
 LandMark decouples the overlay container from the React JSX reconciliation tree using `createPortal(content, overlayDomNode)`, eliminating reconciliation crashes permanently.
 
+### 2.5. Stateless JWT Authentication & Land Ownership
+To ensure production scalability and secure ownership of geospatial assets, LandMark incorporates a stateless authentication architecture powered by **Spring Security 6** and **JSON Web Tokens (JWT)**:
+- **Stateless Session Management**: `SessionCreationPolicy.STATELESS` ensures zero server-side session overhead. Every authenticated request is validated via `JwtAuthenticationFilter` reading the `Authorization: Bearer <token>` header.
+- **Cryptographic Security**: Tokens are signed using HMAC-SHA256 with a 256-bit secret key managed securely via `.env`. Passwords are protected using salted `BCryptPasswordEncoder`.
+- **Ownership Binding & Authorization**: When an authenticated user creates a land plot, the system automatically associates the parcel with their user ID. In [LandPlotService.java](backend/src/main/java/com/landmark/api/service/LandPlotService.java), deletion requests check that the requester matches `plot.getUser().getId()` or holds `ROLE_ADMIN`, otherwise throwing a `ForbiddenException` (`403 Forbidden`).
+
 ---
 
 ## 3. Interactive API Documentation (Swagger / OpenAPI 3)
 
-The backend provides complete **Swagger UI** documentation with interactive testing capabilities:
+The backend provides complete **Swagger UI** documentation with interactive testing capabilities, preconfigured with the **Bearer JWT** authorization scheme:
 
 - **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 - **OpenAPI JSON Spec**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
+> **Testing Protected Routes in Swagger**: Click the **Authorize** 🔓 button at the top right of Swagger UI and paste your JWT token (`Bearer <token>`) to test authenticated endpoints interactively.
+
 ### API Endpoints Summary
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/plots` | Register a new land plot (validates 2D overlap and calculates area) |
-| `GET` | `/api/plots` | List all registered land plots with GeoJSON geometries |
-| `GET` | `/api/plots/{id}` | Retrieve single land plot details by UUID |
-| `GET` | `/api/plots/search/radius` | Proximity search by radius (`longitude`, `latitude`, `radiusInMeters`) |
-| `POST` | `/api/plots/search-by-geometry` | Search plots intersecting an arbitrary GeoJSON polygon |
-| `DELETE` | `/api/plots/{id}` | Delete a land plot by UUID |
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Public | Register a new user account (returns JWT token and profile) |
+| `POST` | `/api/auth/login` | Public | Authenticate with email & password (returns JWT token) |
+| `GET` | `/api/auth/me` | Authenticated | Retrieve current authenticated user profile |
+| `POST` | `/api/plots` | Authenticated | Register a new land plot (validates 2D overlap, links creator) |
+| `GET` | `/api/plots` | Public | List all registered land plots with GeoJSON geometries |
+| `GET` | `/api/plots/my-plots` | Authenticated | Retrieve land plots belonging exclusively to the authenticated user |
+| `GET` | `/api/plots/{id}` | Public | Retrieve single land plot details by UUID |
+| `GET` | `/api/plots/search/radius` | Public | Proximity search by radius (`longitude`, `latitude`, `radiusInMeters`) |
+| `POST` | `/api/plots/search-by-geometry` | Public | Search plots intersecting an arbitrary GeoJSON polygon |
+| `DELETE` | `/api/plots/{id}` | Authenticated | Delete a land plot (restricted to plot owner or `ROLE_ADMIN`) |
 
 > **Note**: Both `/api/plots` and `/api/lands` routing prefixes are supported interchangeably.
 
@@ -228,16 +244,21 @@ Both frontend and backend include automated test suites exceeding the 80% covera
 ### Backend Tests (JaCoCo)
 ```bash
 cd backend
-./mvnw clean test
+./mvnw clean test jacoco:report
 ```
-- **42 Automated Tests** covering Controllers, Services, Utilities, DataLoader, and OpenAPI configurations.
-- **JaCoCo Coverage**: > 94% instruction and line coverage.
+- **70 Automated Tests** covering Controllers, Services, JWT Authentication Filter, Token Provider, Ownership Authorization, Spatial Repositories, DataLoader, and OpenAPI configurations.
+- **JaCoCo Coverage**: **91% instruction and line coverage** (well above the 80% threshold).
 - Report location: `backend/target/site/jacoco/index.html`
 
 ### Frontend Tests (Vitest + React Testing Library)
 ```bash
 cd frontend
-npm test
+npm run test:coverage
 ```
-- **68 Automated Tests** covering Drawing interactions, Error Boundary recovery, Popup rendering, Modals, Sidebar, and API integration.
+- **100 Automated Tests** across 13 test suites covering Auth Context, Login/Register forms, "My Plots" portfolio filtering, Polygon Drawing HUD, Error Boundary recovery, Popup inspection, Role-based Delete buttons, Sidebar, and API integration.
+- **Vitest v8 Coverage**:
+  - **86.6% Lines**
+  - **85.5% Statements**
+  - **81.5% Branches**
+  - **83.7% Functions**
 - Report location: `frontend/coverage/index.html`
