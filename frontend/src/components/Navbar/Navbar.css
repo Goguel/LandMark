@@ -134,6 +134,16 @@
   color: #ffffff;
 }
 
+.filter-pill.my-plots-pill {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--accent-emerald);
+  color: #34d399;
+}
+
+.filter-pill.my-plots-pill .clear-filter-btn {
+  color: #34d399;
+}
+
 .navbar-actions {
   display: flex;
   align-items: center;

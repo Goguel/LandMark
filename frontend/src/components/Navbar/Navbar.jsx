@@ -5,6 +5,8 @@ export function Navbar({
   plotCount,
   activeFilter,
   onClearFilter,
+  filterOnlyMine = false,
+  onClearOnlyMine,
   onToggleSidebar,
   isSidebarOpen,
   currentUser,
@@ -45,6 +47,21 @@ export function Navbar({
               onClick={onClearFilter}
               title="Clear radius filter and show all plots"
               id="clear-radius-filter-btn"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {filterOnlyMine && (
+          <div className="filter-pill my-plots-pill" id="active-my-plots-badge">
+            <span className="filter-icon">👤</span>
+            <span className="filter-text">My Plots</span>
+            <button
+              className="clear-filter-btn"
+              onClick={onClearOnlyMine}
+              title="Show all plots"
+              id="clear-my-plots-badge-btn"
             >
               ×
             </button>

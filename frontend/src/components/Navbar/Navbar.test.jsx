@@ -106,4 +106,25 @@ describe('Navbar Component', () => {
     fireEvent.click(logoutBtn);
     expect(handleLogout).toHaveBeenCalledTimes(1);
   });
+
+  it('renders my-plots filter badge and triggers onClearOnlyMine', () => {
+    const handleClearOnlyMine = vi.fn();
+    render(
+      <Navbar
+        plotCount={2}
+        activeFilter={null}
+        onClearFilter={vi.fn()}
+        filterOnlyMine={true}
+        onClearOnlyMine={handleClearOnlyMine}
+        onToggleSidebar={vi.fn()}
+        isSidebarOpen={false}
+        currentUser={{ id: '1', name: 'User' }}
+      />
+    );
+
+    expect(screen.getByText('My Plots')).toBeInTheDocument();
+    const clearBtn = screen.getByTitle('Show all plots');
+    fireEvent.click(clearBtn);
+    expect(handleClearOnlyMine).toHaveBeenCalledTimes(1);
+  });
 });
