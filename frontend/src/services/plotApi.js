@@ -135,3 +135,15 @@ export async function deletePlot(id) {
   });
   return handleResponse(response);
 }
+
+/**
+ * Fetches all land plots registered by the current authenticated user.
+ * @returns {Promise<Array>} Array of LandPlotResponseDTO
+ */
+export async function fetchMyPlots() {
+  const response = await fetch(`${API_BASE_URL}/my-plots`, {
+    method: 'GET',
+    headers: buildHeaders(),
+  });
+  return handleResponse(response);
+}

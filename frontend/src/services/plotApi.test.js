@@ -4,6 +4,8 @@ import {
   searchPlotsByRadius,
   registerPlot,
   fetchPlotById,
+  deletePlot,
+  fetchMyPlots,
   ApiError,
 } from './plotApi';
 
@@ -170,5 +172,35 @@ describe('plotApi', () => {
 
     const result = await fetchAllPlots();
     expect(result).toBeNull();
+  });
+
+  it('fetchMyPlots calls /api/plots/my-plots and returns user plots', async () => {
+    const mockPlots = [{ id: 'my-plot-1', totalPrice: 300000, ownerId: 'user-1' }];
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => mockPlots,
+    });
+
+    const result = await fetchMyPlots();
+    expect(result).toEqual(mockPlots);
+    expect(fetch).toHaveBeenCalledWith('/api/plots/my-plots', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+  });
+
+  it('deletePlot calls DELETE /api/plots/{id}', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 204,
+      json: async () => null,
+    });
+
+    await deletePlot('plot-uuid-del');
+    expect(fetch).toHaveBeenCalledWith('/api/plots/plot-uuid-del', {
+      method: 'DELETE',
+      headers: { Accept: 'application/json' },
+    });
   });
 });
