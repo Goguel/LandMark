@@ -67,6 +67,7 @@ describe('App Component Integration', () => {
       totalPrice: 150000,
       description: 'Central Plot 1',
       contactInfo: 'agent@landmark.com',
+      ownerId: 'user-uuid-1',
       geometry: { type: 'Polygon', coordinates: [] },
       createdAt: '2026-10-17T10:00:00Z',
     },
@@ -75,6 +76,7 @@ describe('App Component Integration', () => {
       totalPrice: 280000,
       description: 'Central Plot 2',
       contactInfo: 'owner@landmark.com',
+      ownerId: 'other-user',
       geometry: { type: 'Polygon', coordinates: [] },
       createdAt: '2026-10-17T11:00:00Z',
     },
@@ -382,6 +384,43 @@ describe('App Component Integration', () => {
       expect(plotApi.deletePlot).toHaveBeenCalledWith('uuid-1');
       expect(screen.getByTestId('plots-count')).toHaveTextContent('1');
       expect(screen.getByText(/Land plot deleted successfully/i)).toBeInTheDocument();
+    });
+  });
+
+  it('filters map and sidebar by My Plots when tab is selected', async () => {
+    vi.spyOn(plotApi, 'fetchAllPlots').mockResolvedValue(mockPlots);
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('plots-count')).toHaveTextContent('2');
+    });
+
+    // Open sidebar
+    fireEvent.click(screen.getByTitle('Open plots panel'));
+
+    // Switch to "My Plots"
+    const myPlotsTab = screen.getByRole('tab', { name: /My Plots/i });
+    fireEvent.click(myPlotsTab);
+
+    // Map and Navbar should now show only 1 plot (owned by user-uuid-1)
+    await waitFor(() => {
+      expect(screen.getByTestId('plots-count')).toHaveTextContent('1');
+      expect(screen.getByText('Central Plot 1')).toBeInTheDocument();
+      expect(screen.queryByText('Central Plot 2')).not.toBeInTheDocument();
+    });
+
+    // Active badge in Navbar
+    expect(screen.getByText('My Plots')).toBeInTheDocument();
+
+    // Clear filter via Navbar badge
+    const clearMyPlotsBtn = screen.getByTitle('Show all plots');
+    fireEvent.click(clearMyPlotsBtn);
+
+    // Both plots restored on the map
+    await waitFor(() => {
+      expect(screen.getByTestId('plots-count')).toHaveTextContent('2');
+      expect(screen.getByText('Central Plot 2')).toBeInTheDocument();
     });
   });
 });

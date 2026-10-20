@@ -14,6 +14,7 @@ import './App.css';
 export function App() {
   const [currentUser, setCurrentUser] = useState(() => getStoredUser());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [filterOnlyMine, setFilterOnlyMine] = useState(false);
 
   const [plots, setPlots] = useState([]);
   const [allPlots, setAllPlots] = useState([]);
@@ -22,6 +23,21 @@ export function App() {
   const [activeFilter, setActiveFilter] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [resetViewTrigger, setResetViewTrigger] = useState(0);
+
+  // Filtered plots shown on the map and sidebar based on "My Plots" scope
+  const displayedPlots = React.useMemo(() => {
+    if (filterOnlyMine && currentUser) {
+      return plots.filter((p) => p.ownerId && p.ownerId === currentUser.id);
+    }
+    return plots;
+  }, [plots, filterOnlyMine, currentUser]);
+
+  // Dismiss popup if selected plot is filtered out
+  useEffect(() => {
+    if (filterOnlyMine && selectedPlot && currentUser && selectedPlot.ownerId !== currentUser.id) {
+      setSelectedPlot(null);
+    }
+  }, [filterOnlyMine, selectedPlot, currentUser]);
 
   // Plot Creation Modal states
   const [draftPolygon, setDraftPolygon] = useState(null);
@@ -64,8 +80,18 @@ export function App() {
   const handleLogout = useCallback(() => {
     clearSession();
     setCurrentUser(null);
+    setFilterOnlyMine(false);
     addToast('info', 'Signed out successfully.', 'Sign Out');
   }, [addToast]);
+
+  const handleToggleFilterOnlyMine = useCallback((onlyMine) => {
+    if (onlyMine && !currentUser) {
+      setIsAuthModalOpen(true);
+      addToast('warning', 'Please sign in or create an account to view your registered plots.', 'Authentication Required');
+      return;
+    }
+    setFilterOnlyMine(onlyMine);
+  }, [currentUser, addToast]);
 
   const handleAuthSuccess = useCallback((user) => {
     setCurrentUser(user);
@@ -216,9 +242,11 @@ export function App() {
   return (
     <div className="app-container">
       <Navbar
-        plotCount={plots.length}
+        plotCount={displayedPlots.length}
         activeFilter={activeFilter}
         onClearFilter={handleClearFilter}
+        filterOnlyMine={filterOnlyMine}
+        onClearOnlyMine={() => setFilterOnlyMine(false)}
         onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
         isSidebarOpen={isSidebarOpen}
         currentUser={currentUser}
@@ -236,7 +264,7 @@ export function App() {
         />
 
         <MapContainer
-          plots={plots}
+          plots={displayedPlots}
           mode={mode}
           setMode={setMode}
           selectedPlot={selectedPlot}
@@ -253,7 +281,16 @@ export function App() {
         <PlotListPanel
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
-          plots={plots}
+          plots={displayedPlots}
+          allPlots={plots}
+          currentUser={currentUser}
+          filterOnlyMine={filterOnlyMine}
+          onToggleFilterOnlyMine={handleToggleFilterOnlyMine}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onStartDrawPlot={() => {
+            setIsSidebarOpen(false);
+            handleSetMode('draw_polygon');
+          }}
           selectedPlot={selectedPlot}
           onSelectPlot={(plot) => setSelectedPlot(plot)}
           activeFilter={activeFilter}
