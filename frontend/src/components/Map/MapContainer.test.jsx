@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import Draw from 'ol/interaction/Draw';
 import Feature from 'ol/Feature';
 import Polygon from 'ol/geom/Polygon';
@@ -264,10 +264,12 @@ describe('MapContainer Component', () => {
           ],
         ]),
       });
-      lastDrawInstance.dispatchEvent({ type: 'drawstart', feature: polygonFeature });
-      // Call drawstart again to cover clearing previous draft
-      lastDrawInstance.dispatchEvent({ type: 'drawstart', feature: polygonFeature });
-      lastDrawInstance.dispatchEvent({ type: 'drawend', feature: polygonFeature });
+      act(() => {
+        lastDrawInstance.dispatchEvent({ type: 'drawstart', feature: polygonFeature });
+        // Call drawstart again to cover clearing previous draft
+        lastDrawInstance.dispatchEvent({ type: 'drawstart', feature: polygonFeature });
+        lastDrawInstance.dispatchEvent({ type: 'drawend', feature: polygonFeature });
+      });
       expect(onPolygonCompleted).toHaveBeenCalled();
     }
 
@@ -300,12 +302,13 @@ describe('MapContainer Component', () => {
         set: vi.fn(),
       };
 
-      lastDrawInstance.dispatchEvent({ type: 'drawstart', feature: circleFeature });
-      if (changeCallback) {
-        changeCallback();
-      }
-
-      lastDrawInstance.dispatchEvent({ type: 'drawend', feature: circleFeature });
+      act(() => {
+        lastDrawInstance.dispatchEvent({ type: 'drawstart', feature: circleFeature });
+        if (changeCallback) {
+          changeCallback();
+        }
+        lastDrawInstance.dispatchEvent({ type: 'drawend', feature: circleFeature });
+      });
       expect(onRadiusSearchCompleted).toHaveBeenCalled();
     }
   });

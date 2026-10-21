@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PlotDetailsPopup } from './PlotDetailsPopup';
 
 describe('PlotDetailsPopup Component', () => {
@@ -75,7 +75,9 @@ describe('PlotDetailsPopup Component', () => {
     fireEvent.click(screen.getByRole('button', { name: /Delete Plot/i }));
     fireEvent.click(screen.getByRole('button', { name: 'Yes, Delete' }));
 
-    expect(onDelete).toHaveBeenCalledWith('uuid-123');
+    await waitFor(() => {
+      expect(onDelete).toHaveBeenCalledWith('uuid-123');
+    });
   });
 
   it('renders delete button for admin user even if not the plot owner', () => {
