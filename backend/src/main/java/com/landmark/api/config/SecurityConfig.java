@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/plots/my-plots", "/api/lands/my-plots").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/plots/**", "/api/lands/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/plots/search-by-geometry", "/api/lands/search-by-geometry").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/plots/**", "/api/lands/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/plots/**", "/api/lands/**").authenticated()
                         .anyRequest().authenticated()

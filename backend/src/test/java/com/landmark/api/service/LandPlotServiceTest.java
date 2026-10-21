@@ -262,6 +262,17 @@ class LandPlotServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw AccessDeniedException when unauthenticated user attempts plot deletion")
+    void shouldThrowAccessDeniedWhenUnauthenticatedUserAttemptsToDeletePlot() {
+        UUID id = sampleEntity.getId();
+        when(repository.findById(id)).thenReturn(Optional.of(sampleEntity));
+        when(authService.getCurrentAuthenticatedUser()).thenReturn(null);
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> service.deletePlot(id));
+        verify(repository, never()).delete(any());
+    }
+
+    @Test
     @DisplayName("Should throw ResourceNotFoundException when trying to delete non-existent plot")
     void shouldThrowWhenDeletingNonExistentPlot() {
         UUID id = UUID.randomUUID();
