@@ -22,6 +22,7 @@
   - [2.3. Flyway Versioning & `ddl-auto: validate`](#23-flyway-versioning--ddl-auto-validate)
   - [2.4. React 18 + OpenLayers Decoupled Overlay Architecture](#24-react-18--openlayers-decoupled-overlay-architecture)
   - [2.5. Stateless JWT Authentication & Land Ownership](#25-stateless-jwt-authentication--land-ownership)
+  - [2.6. Preconfigured Demo Credentials](#26-preconfigured-demo-credentials)
 - [3. Interactive API Documentation (Swagger / OpenAPI 3)](#3-interactive-api-documentation-swagger--openapi-3)
 - [4. Preloaded Brazilian Land Catalog (Seed Data)](#4-preloaded-brazilian-land-catalog-seed-data)
 - [5. Quick Start with Docker Compose (Recommended)](#5-quick-start-with-docker-compose-recommended)
@@ -108,6 +109,18 @@ To ensure production scalability and secure ownership of geospatial assets, Land
 - **Stateless Session Management**: `SessionCreationPolicy.STATELESS` ensures zero server-side session overhead. Every authenticated request is validated via `JwtAuthenticationFilter` reading the `Authorization: Bearer <token>` header.
 - **Cryptographic Security**: Tokens are signed using HMAC-SHA256 with a 256-bit secret key managed securely via `.env`. Passwords are protected using salted `BCryptPasswordEncoder`.
 - **Ownership Binding & Authorization**: When an authenticated user creates a land plot, the system automatically associates the parcel with their user ID. In [LandPlotService.java](backend/src/main/java/com/landmark/api/service/LandPlotService.java), deletion requests check that the requester matches `plot.getUser().getId()` or holds `ROLE_ADMIN`, otherwise throwing a `ForbiddenException` (`403 Forbidden`).
+
+### 2.6. Preconfigured Demo Credentials
+
+To streamline evaluation and manual walkthroughs without requiring manual user creation, the system automatically seeds a default administrator account upon database initialization:
+
+| Field | Demo Administrator Value | Notes |
+|---|---|---|
+| **Email** | `admin@landmark.com` | Preloaded with `ROLE_ADMIN` privileges |
+| **Password** | `Landmark@123` | Salted BCrypt hash |
+| **UI Autofill** | One-Click Button | In the Sign-In modal, click **"Autofill admin@landmark.com"** |
+
+> **Self-Registration**: Evaluators may also register brand-new personal accounts dynamically via the frontend's **"Create Account"** tab or `POST /api/auth/register`.
 
 ---
 
@@ -233,7 +246,7 @@ cd frontend
 npm install
 npm run dev
 ```
-The client starts on [http://localhost:5173](http://localhost:5173).
+The client starts on [http://localhost:3000](http://localhost:3000).
 
 ---
 
@@ -246,7 +259,7 @@ Both frontend and backend include automated test suites exceeding the 80% covera
 cd backend
 ./mvnw clean test jacoco:report
 ```
-- **70 Automated Tests** covering Controllers, Services, JWT Authentication Filter, Token Provider, Ownership Authorization, Spatial Repositories, DataLoader, and OpenAPI configurations.
+- **71 Automated Tests** covering Controllers, Services, JWT Authentication Filter, Token Provider, Ownership Authorization, Spatial Repositories, DataLoader, and OpenAPI configurations.
 - **JaCoCo Coverage**: **91% instruction and line coverage** (well above the 80% threshold).
 - Report location: `backend/target/site/jacoco/index.html`
 
