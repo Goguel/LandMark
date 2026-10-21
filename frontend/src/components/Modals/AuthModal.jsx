@@ -157,6 +157,23 @@ export function AuthModal({ isOpen, onClose, onSuccess }) {
             />
           </div>
 
+          {mode === 'login' && (
+            <div className="demo-credentials-hint">
+              <span className="demo-hint-label">💡 Demo Admin Account:</span>
+              <button
+                type="button"
+                className="btn-demo-fill"
+                onClick={() => {
+                  setEmail('admin@landmark.com');
+                  setPassword('Landmark@123');
+                }}
+                id="btn-fill-demo-admin"
+              >
+                Autofill admin@landmark.com
+              </button>
+            </div>
+          )}
+
           <div className="auth-modal-actions">
             <button
               type="button"
