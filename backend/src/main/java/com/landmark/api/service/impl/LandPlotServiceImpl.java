@@ -11,10 +11,13 @@ import com.landmark.api.repository.LandPlotRepository;
 import com.landmark.api.service.LandPlotService;
 import com.landmark.api.util.GeometryUtils;
 import com.landmark.api.service.AuthService;
+import com.landmark.api.entity.User;
+import com.landmark.api.entity.Role;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Polygon;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.UUID;
@@ -55,7 +58,7 @@ public class LandPlotServiceImpl implements LandPlotService {
             title = title.trim();
         }
 
-        com.landmark.api.entity.User currentUser = authService.getCurrentAuthenticatedUser();
+        User currentUser = authService.getCurrentAuthenticatedUser();
 
         LandPlot entity = LandPlot.builder()
                 .title(title)
@@ -115,9 +118,9 @@ public class LandPlotServiceImpl implements LandPlotService {
     @Override
     @Transactional(readOnly = true)
     public List<LandPlotResponseDTO> findPlotsByCurrentUser() {
-        com.landmark.api.entity.User currentUser = authService.getCurrentAuthenticatedUser();
+        User currentUser = authService.getCurrentAuthenticatedUser();
         if (currentUser == null) {
-            throw new org.springframework.security.access.AccessDeniedException(
+            throw new AccessDeniedException(
                     "You must be authenticated to view your registered plots."
             );
         }
@@ -133,20 +136,20 @@ public class LandPlotServiceImpl implements LandPlotService {
         LandPlot plot = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cannot delete: Land plot not found with ID: " + id));
 
-        com.landmark.api.entity.User currentUser = authService.getCurrentAuthenticatedUser();
+        User currentUser = authService.getCurrentAuthenticatedUser();
         if (currentUser == null) {
             log.warn("Unauthenticated attempt to delete plot {}", id);
-            throw new org.springframework.security.access.AccessDeniedException(
+            throw new AccessDeniedException(
                     "You must be authenticated to delete a land plot."
             );
         }
 
         boolean isOwner = plot.getOwner() != null && plot.getOwner().getId().equals(currentUser.getId());
-        boolean isAdmin = currentUser.getRole() == com.landmark.api.entity.Role.ROLE_ADMIN;
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
         if (!isOwner && !isAdmin) {
             log.warn("User {} attempted to delete plot {} owned by {}",
                     currentUser.getEmail(), id, plot.getOwner() != null ? plot.getOwner().getEmail() : "none");
-            throw new org.springframework.security.access.AccessDeniedException(
+            throw new AccessDeniedException(
                     "You do not have permission to delete this plot. Only the owner or an administrator can delete it."
             );
         }
